@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthenticationFilter.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">mercado-livro</a> &gt; <a href="index.source.html" class="el_package">com.mercadolivro.security</a> &gt; <span class="el_source">AuthenticationFilter.kt</span></div><h1>AuthenticationFilter.kt</h1><pre class="source lang-java linenums">package com.mercadolivro.security
+
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.mercadolivro.controller.request.LoginRequest
+import com.mercadolivro.exception.AuthenticationException
+import com.mercadolivro.repository.CustomerRepository
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.Authentication
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import javax.servlet.FilterChain
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+
+<span class="nc" id="L15">class AuthenticationFilter(</span>
+    authenticationManager: AuthenticationManager,
+    private val customRepository: CustomerRepository,
+    private val jwtUtil: JwtUtil
+<span class="nc" id="L19">) : UsernamePasswordAuthenticationFilter(authenticationManager) {</span>
+
+    override fun attemptAuthentication(request: HttpServletRequest, response: HttpServletResponse): Authentication {
+<span class="nc" id="L22">        try {</span>
+<span class="nc" id="L23">            val loginRequest = jacksonObjectMapper().readValue(request.inputStream, LoginRequest::class.java)</span>
+<span class="nc bnc" id="L24" title="All 2 branches missed.">            val id = customRepository.findByEmail(loginRequest.email)?.id</span>
+<span class="nc" id="L25">            val authToken = UsernamePasswordAuthenticationToken(id, loginRequest.password)</span>
+<span class="nc" id="L26">            return authenticationManager.authenticate(authToken)</span>
+<span class="nc" id="L27">        } catch (ex: Exception) {</span>
+<span class="nc" id="L28">            throw AuthenticationException(&quot;Falha ao autenticar&quot;, &quot;999&quot;)</span>
+        }
+    }
+
+    override fun successfulAuthentication(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain, authResult: Authentication) {
+<span class="nc bnc" id="L33" title="All 2 branches missed.">        val id = (authResult.principal as UserCustomDetails).id</span>
+<span class="nc" id="L34">        val token = jwtUtil.generateToken(id)</span>
+
+<span class="nc" id="L36">        response.addHeader(&quot;Authorization&quot;, &quot;Bearer $token&quot;)</span>
+<span class="nc" id="L37">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

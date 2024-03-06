@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BookController.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">mercado-livro</a> &gt; <a href="index.source.html" class="el_package">com.mercadolivro.controller</a> &gt; <span class="el_source">BookController.kt</span></div><h1>BookController.kt</h1><pre class="source lang-java linenums">package com.mercadolivro.controller
+
+import com.mercadolivro.controller.request.PostBookRequest
+import com.mercadolivro.controller.request.PutBookRequest
+import com.mercadolivro.controller.response.PageResponse
+import com.mercadolivro.extension.BookResponse
+import com.mercadolivro.extension.toBookModel
+import com.mercadolivro.extension.toPageResponse
+import com.mercadolivro.extension.toResponse
+import com.mercadolivro.service.BookService
+import com.mercadolivro.service.CustomerService
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PageableDefault
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.*
+import javax.validation.Valid
+
+@RestController
+@RequestMapping(&quot;books&quot;)
+<span class="nc" id="L21">class BookController(</span>
+    private val bookService: BookService,
+    private val customerService: CustomerService
+) {
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    fun create(@RequestBody @Valid request: PostBookRequest){
+<span class="nc" id="L29">        val customer = customerService.findById(request.customerId)</span>
+<span class="nc" id="L30">        bookService.create(request.toBookModel(customer))</span>
+<span class="nc" id="L31">    }</span>
+
+    @GetMapping
+    fun findAll(@PageableDefault(page = 0, size = 10) pageable: Pageable): PageResponse&lt;BookResponse&gt; {
+<span class="nc" id="L35">        return bookService.findAll(pageable).map { it.toResponse() }.toPageResponse()</span>
+    }
+
+    @GetMapping(&quot;/active&quot;)
+    fun findActives(@PageableDefault(page = 0, size = 10) pageable: Pageable): Page&lt;BookResponse&gt;{
+<span class="nc" id="L40">        return bookService.findActives(pageable).map { it.toResponse() }</span>
+    }
+
+    @GetMapping(&quot;/{id}&quot;)
+    fun findById(@PathVariable id: Int): BookResponse{
+<span class="nc" id="L45">        return bookService.findById(id).toResponse()</span>
+    }
+
+    @DeleteMapping(&quot;/{id}&quot;)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun delete(@PathVariable id: Int){
+<span class="nc" id="L51">        bookService.delete(id)</span>
+<span class="nc" id="L52">    }</span>
+
+    @PutMapping(&quot;/{id}&quot;)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun update(@PathVariable id: Int, @RequestBody book: PutBookRequest){
+<span class="nc" id="L57">        val bookSaved = bookService.findById(id)</span>
+<span class="nc" id="L58">        bookService.update(book.toBookModel(bookSaved))</span>
+
+<span class="nc" id="L60">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>
